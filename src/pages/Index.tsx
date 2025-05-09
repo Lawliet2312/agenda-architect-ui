@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Task, TaskPriority } from "@/types/task";
@@ -145,7 +144,7 @@ const Index = () => {
       description: completed 
         ? "Your task has been marked as completed" 
         : "Your task has been reopened",
-      variant: completed ? "default" : "secondary",
+      variant: "default",
     });
   };
 
