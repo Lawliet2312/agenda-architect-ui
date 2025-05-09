@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Task, TaskPriority } from "@/types/task";
@@ -17,6 +18,20 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+
+// Helper function to convert snake_case database fields to camelCase for our Task interface
+const mapDatabaseTaskToTask = (dbTask: any): Task => {
+  return {
+    id: dbTask.id,
+    title: dbTask.title,
+    description: dbTask.description || undefined,
+    completed: dbTask.completed,
+    createdAt: dbTask.created_at,
+    dueDate: dbTask.due_date || undefined,
+    priority: dbTask.priority as TaskPriority,
+    tags: dbTask.tags || undefined,
+  };
+};
 
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -47,8 +62,10 @@ const Index = () => {
         }
         
         if (data) {
-          setTasks(data);
-          console.log("Tasks fetched:", data);
+          // Map the database response to our Task interface
+          const mappedTasks = data.map(mapDatabaseTaskToTask);
+          setTasks(mappedTasks);
+          console.log("Tasks fetched:", mappedTasks);
         }
       } catch (error) {
         console.error("Error fetching tasks:", error);
@@ -145,7 +162,9 @@ const Index = () => {
       }
       
       if (data) {
-        setTasks([data, ...tasks]);
+        // Map the database response to our Task interface
+        const mappedTask = mapDatabaseTaskToTask(data);
+        setTasks([mappedTask, ...tasks]);
         setIsAddDialogOpen(false);
         toast({
           title: "Task added",
@@ -164,9 +183,20 @@ const Index = () => {
 
   const handleUpdateTask = async (updatedTask: Task) => {
     try {
+      // Convert our Task object to the database format
+      const dbTask = {
+        id: updatedTask.id,
+        title: updatedTask.title,
+        description: updatedTask.description,
+        completed: updatedTask.completed,
+        due_date: updatedTask.dueDate,
+        priority: updatedTask.priority,
+        tags: updatedTask.tags,
+      };
+      
       const { error } = await supabase
         .from('tasks')
-        .update(updatedTask)
+        .update(dbTask)
         .eq('id', updatedTask.id);
       
       if (error) {
