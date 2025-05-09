@@ -16,16 +16,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const savedTasks = localStorage.getItem("tasks");
-    return savedTasks ? JSON.parse(savedTasks) : demoTasks;
-  });
-  
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<Task[]>(tasks);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState({
     status: "all" as "all" | "pending" | "completed",
     priority: "all" as "all" | TaskPriority,
@@ -34,8 +32,40 @@ const Index = () => {
   
   const { toast } = useToast();
 
+  // Fetch tasks from Supabase
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    const fetchTasks = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setTasks(data);
+          console.log("Tasks fetched:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        toast({
+          title: "Error fetching tasks",
+          description: "Failed to load your tasks. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, [toast]);
+
+  useEffect(() => {
     applyFilters();
   }, [tasks, filter, searchQuery]);
 
@@ -97,55 +127,127 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = (taskData: Omit<Task, 'id' | 'createdAt' | 'completed'>) => {
-    const newTask: Task = {
-      id: uuidv4(),
-      createdAt: new Date().toISOString(),
-      completed: false,
-      ...taskData,
-    };
-    
-    setTasks([newTask, ...tasks]);
-    setIsAddDialogOpen(false);
-    toast({
-      title: "Task added",
-      description: "Your new task has been created",
-    });
+  const handleAddTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'completed'>) => {
+    try {
+      const newTask = {
+        ...taskData,
+        completed: false,
+      };
+      
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert(newTask)
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        setTasks([data, ...tasks]);
+        setIsAddDialogOpen(false);
+        toast({
+          title: "Task added",
+          description: "Your new task has been created",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding task:", error);
+      toast({
+        title: "Error adding task",
+        description: "Failed to add your task. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleUpdateTask = (updatedTask: Task) => {
-    setTasks(tasks.map(task => 
-      task.id === updatedTask.id ? updatedTask : task
-    ));
-    
-    toast({
-      title: "Task updated",
-      description: "Your task has been updated successfully",
-    });
+  const handleUpdateTask = async (updatedTask: Task) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update(updatedTask)
+        .eq('id', updatedTask.id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setTasks(tasks.map(task => 
+        task.id === updatedTask.id ? updatedTask : task
+      ));
+      
+      toast({
+        title: "Task updated",
+        description: "Your task has been updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating task:", error);
+      toast({
+        title: "Error updating task",
+        description: "Failed to update your task. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteTask = (id: string) => {
-    setTasks(tasks.filter(task => task.id !== id));
-    
-    toast({
-      title: "Task deleted",
-      description: "Your task has been deleted",
-      variant: "destructive",
-    });
+  const handleDeleteTask = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setTasks(tasks.filter(task => task.id !== id));
+      
+      toast({
+        title: "Task deleted",
+        description: "Your task has been deleted",
+        variant: "destructive",
+      });
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      toast({
+        title: "Error deleting task",
+        description: "Failed to delete your task. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleToggleComplete = (id: string, completed: boolean) => {
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, completed } : task
-    ));
-    
-    toast({
-      title: completed ? "Task completed" : "Task reopened",
-      description: completed 
-        ? "Your task has been marked as completed" 
-        : "Your task has been reopened",
-      variant: "default",
-    });
+  const handleToggleComplete = async (id: string, completed: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ completed })
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setTasks(tasks.map(task => 
+        task.id === id ? { ...task, completed } : task
+      ));
+      
+      toast({
+        title: completed ? "Task completed" : "Task reopened",
+        description: completed 
+          ? "Your task has been marked as completed" 
+          : "Your task has been reopened",
+      });
+    } catch (error) {
+      console.error("Error toggling task completion:", error);
+      toast({
+        title: "Error updating task",
+        description: "Failed to update your task. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleFilterChange = (newFilter: any) => {
@@ -191,58 +293,22 @@ const Index = () => {
             onFilterChange={handleFilterChange}
           />
           
-          <TaskList
-            tasks={filteredTasks}
-            onUpdate={handleUpdateTask}
-            onDelete={handleDeleteTask}
-            onToggleComplete={handleToggleComplete}
-          />
+          {isLoading ? (
+            <div className="py-10 text-center">
+              <p className="text-lg text-muted-foreground">Loading tasks...</p>
+            </div>
+          ) : (
+            <TaskList
+              tasks={filteredTasks}
+              onUpdate={handleUpdateTask}
+              onDelete={handleDeleteTask}
+              onToggleComplete={handleToggleComplete}
+            />
+          )}
         </Card>
       </main>
     </div>
   );
 };
-
-// Demo tasks for initial state
-const demoTasks: Task[] = [
-  {
-    id: "1",
-    title: "Complete project proposal",
-    description: "Finish the draft proposal for the new client project, including timeline and budget.",
-    completed: false,
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    dueDate: new Date(Date.now() + 86400000 * 3).toISOString(),
-    priority: "high",
-    tags: ["work", "client", "proposal"]
-  },
-  {
-    id: "2",
-    title: "Buy groceries for the week",
-    description: "Milk, eggs, bread, fruits, and vegetables",
-    completed: true,
-    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-    priority: "medium",
-    tags: ["personal", "shopping"]
-  },
-  {
-    id: "3",
-    title: "Schedule dentist appointment",
-    completed: false,
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    dueDate: new Date(Date.now() + 86400000 * 10).toISOString(),
-    priority: "low",
-    tags: ["health", "personal"]
-  },
-  {
-    id: "4",
-    title: "Review team performance reports",
-    description: "Analyze Q1 performance data and prepare insights for the management meeting",
-    completed: false,
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    dueDate: new Date(Date.now() + 86400000).toISOString(),
-    priority: "high",
-    tags: ["work", "management", "reports"]
-  },
-];
 
 export default Index;
