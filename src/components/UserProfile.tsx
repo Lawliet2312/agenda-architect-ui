@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Avatar } from "lucide-react";
+import { User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -36,7 +36,7 @@ export function UserProfile() {
         onClick={() => navigate("/auth")}
         className="flex items-center gap-2"
       >
-        <Avatar className="h-5 w-5" />
+        <User className="h-5 w-5" />
         <span>Sign In</span>
       </Button>
     );
