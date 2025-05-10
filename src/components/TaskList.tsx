@@ -1,6 +1,7 @@
 
 import { TaskCard } from "@/components/TaskCard";
 import { Task } from "@/types/task";
+import { ClipboardX } from "lucide-react";
 
 interface TaskListProps {
   tasks: Task[];
@@ -13,14 +14,19 @@ export function TaskList({ tasks, onUpdate, onDelete, onToggleComplete }: TaskLi
   if (tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-lg mb-2">No tasks found</p>
-        <p className="text-muted-foreground">Add a new task or try changing your filters.</p>
+        <div className="rounded-full bg-secondary/50 p-4 mb-4">
+          <ClipboardX className="h-10 w-10 text-muted-foreground" />
+        </div>
+        <h3 className="text-xl font-medium mb-2">No tasks found</h3>
+        <p className="text-muted-foreground">
+          Add a new task or try changing your filters.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 task-list">
+    <div className="grid grid-cols-1 gap-4 task-list mt-6">
       {tasks.map((task) => (
         <TaskCard
           key={task.id}

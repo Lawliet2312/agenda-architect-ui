@@ -39,9 +39,11 @@ export function TaskForm({
     initialValues?.dueDate ? new Date(initialValues.dueDate) : undefined
   );
   const [tags, setTags] = useState(initialValues?.tags?.join(", ") || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     const tagArray = tags
       .split(",")
@@ -53,7 +55,7 @@ export function TaskForm({
       description,
       priority,
       dueDate: dueDate?.toISOString(),
-      tags: tagArray,
+      tags: tagArray.length > 0 ? tagArray : undefined,
     });
     
     // Reset form if not editing
@@ -64,6 +66,8 @@ export function TaskForm({
       setDueDate(undefined);
       setTags("");
     }
+    
+    setIsSubmitting(false);
   };
 
   return (
@@ -93,7 +97,7 @@ export function TaskForm({
             value={priority} 
             onValueChange={(value: TaskPriority) => setPriority(value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent>
@@ -113,17 +117,19 @@ export function TaskForm({
                   "w-full justify-start text-left font-normal",
                   !dueDate && "text-muted-foreground"
                 )}
+                type="button"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {dueDate ? format(dueDate, "PPP") : "Select due date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
                 selected={dueDate}
                 onSelect={setDueDate}
                 initialFocus
+                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
@@ -144,7 +150,9 @@ export function TaskForm({
             Cancel
           </Button>
         )}
-        <Button type="submit">{submitLabel}</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Processing..." : submitLabel}
+        </Button>
       </div>
     </form>
   );

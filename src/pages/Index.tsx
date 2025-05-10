@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Task, TaskPriority } from "@/types/task";
@@ -8,7 +7,7 @@ import { TaskList } from "@/components/TaskList";
 import { TaskFilters } from "@/components/TaskFilters";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Plus, ClipboardList } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +28,7 @@ const mapDatabaseTaskToTask = (dbTask: any): Task => {
     createdAt: dbTask.created_at,
     dueDate: dbTask.due_date || undefined,
     priority: dbTask.priority as TaskPriority,
-    tags: dbTask.tags || undefined,
+    tags: dbTask.tags || [],
   };
 };
 
@@ -146,18 +145,24 @@ const Index = () => {
 
   const handleAddTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'completed'>) => {
     try {
-      const newTask = {
-        ...taskData,
+      // Convert our Task interface object to the database format
+      const dbTask = {
+        title: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority,
+        due_date: taskData.dueDate,
+        tags: taskData.tags || [],
         completed: false,
       };
       
       const { data, error } = await supabase
         .from('tasks')
-        .insert(newTask)
+        .insert(dbTask)
         .select()
         .single();
       
       if (error) {
+        console.error("Supabase error:", error);
         throw error;
       }
       
@@ -191,7 +196,7 @@ const Index = () => {
         completed: updatedTask.completed,
         due_date: updatedTask.dueDate,
         priority: updatedTask.priority,
-        tags: updatedTask.tags,
+        tags: updatedTask.tags || [],
       };
       
       const { error } = await supabase
@@ -289,26 +294,29 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-r from-purple-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
       <Header onSearch={handleSearch} />
       
       <main className="flex-1 container py-6 px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Tasks</h2>
+            <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+              <ClipboardList className="h-7 w-7" />
+              Task Manager
+            </h2>
             <p className="text-muted-foreground mt-1">
-              Manage your tasks and stay organized
+              Organize your tasks and boost your productivity
             </p>
           </div>
           
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="mt-4 md:mt-0">
+              <Button className="mt-4 md:mt-0 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 transition-all duration-300">
                 <Plus className="mr-1 h-4 w-4" />
                 Add Task
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Create New Task</DialogTitle>
               </DialogHeader>
@@ -317,7 +325,7 @@ const Index = () => {
           </Dialog>
         </div>
         
-        <Card className="p-6">
+        <Card className="p-6 shadow-md bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
           <TaskFilters
             filter={filter}
             onFilterChange={handleFilterChange}
@@ -325,7 +333,8 @@ const Index = () => {
           
           {isLoading ? (
             <div className="py-10 text-center">
-              <p className="text-lg text-muted-foreground">Loading tasks...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+              <p className="text-lg text-muted-foreground">Loading your tasks...</p>
             </div>
           ) : (
             <TaskList

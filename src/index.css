@@ -86,11 +86,11 @@
 
 @layer components {
   .task-card {
-    @apply flex flex-col bg-card border border-border p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
+    @apply flex flex-col bg-card border border-border p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
   }
   
   .task-card.completed {
-    @apply bg-opacity-70 border-opacity-50;
+    @apply bg-opacity-80 border-opacity-50;
   }
   
   .tag {
@@ -133,3 +133,42 @@
 .task-list > *:nth-child(8) { animation-delay: 0.4s; }
 .task-list > *:nth-child(9) { animation-delay: 0.45s; }
 .task-list > *:nth-child(10) { animation-delay: 0.5s; }
+
+/* New enhanced styles */
+.task-card {
+  @apply overflow-hidden relative;
+}
+
+.task-card::before {
+  content: '';
+  @apply absolute left-0 top-0 h-full w-1 opacity-70 transition-all duration-200;
+}
+
+.task-card:hover::before {
+  @apply opacity-100;
+}
+
+.task-card.completed::before {
+  @apply bg-success;
+}
+
+.task-card:not(.completed)::before {
+  @apply bg-primary;
+}
+
+button[type="submit"], .dialog button[type="submit"] {
+  @apply relative overflow-hidden;
+}
+
+button[type="submit"]::after, .dialog button[type="submit"]::after {
+  content: '';
+  @apply absolute top-0 left-0 w-full h-full bg-white/20 transform scale-x-0 origin-left transition-transform duration-300;
+}
+
+button[type="submit"]:hover::after, .dialog button[type="submit"]:hover::after {
+  @apply scale-x-100;
+}
+
+.calendar {
+  pointer-events: auto !important;
+}
