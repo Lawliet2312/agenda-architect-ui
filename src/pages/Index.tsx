@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { Task, TaskPriority } from "@/types/task";
 import { Header } from "@/components/Header";
 import { TaskForm } from "@/components/TaskForm";
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 
 // Helper function to convert snake_case database fields to camelCase for our Task interface
 const mapDatabaseTaskToTask = (dbTask: any): Task => {
@@ -45,15 +45,19 @@ const Index = () => {
   });
   
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Fetch tasks from Supabase
   useEffect(() => {
     const fetchTasks = async () => {
+      if (!user) return;
+      
       try {
         setIsLoading(true);
         const { data, error } = await supabase
           .from('tasks')
           .select('*')
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
         
         if (error) {
@@ -79,7 +83,7 @@ const Index = () => {
     };
 
     fetchTasks();
-  }, [toast]);
+  }, [toast, user]);
 
   useEffect(() => {
     applyFilters();
@@ -144,6 +148,8 @@ const Index = () => {
   };
 
   const handleAddTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'completed'>) => {
+    if (!user) return;
+    
     try {
       // Convert our Task interface object to the database format
       const dbTask = {
@@ -153,6 +159,7 @@ const Index = () => {
         due_date: taskData.dueDate,
         tags: taskData.tags || [],
         completed: false,
+        user_id: user.id, // Associate task with current user
       };
       
       const { data, error } = await supabase
@@ -197,6 +204,7 @@ const Index = () => {
         due_date: updatedTask.dueDate,
         priority: updatedTask.priority,
         tags: updatedTask.tags || [],
+        user_id: user?.id, // Ensure user_id is included
       };
       
       const { error } = await supabase
