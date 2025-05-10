@@ -14,24 +14,24 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 255 85% 75%;
+    --primary: 330 100% 45%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 330 100% 96%;
+    --secondary-foreground: 330 60% 45%;
 
-    --muted: 240 5% 96%;
+    --muted: 330 10% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 255 85% 95%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 330 100% 97%;
+    --accent-foreground: 330 60% 40%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 255 85% 75%;
+    --border: 330 30% 92%;
+    --input: 330 30% 92%;
+    --ring: 330 100% 45%;
 
     --radius: 0.75rem;
 
@@ -49,24 +49,24 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 255 85% 65%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 330 100% 55%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 330 40% 20%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 330 40% 17.5%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 255 85% 65%;
+    --border: 330 50% 20%;
+    --input: 330 50% 20%;
+    --ring: 330 100% 55%;
     
     --success: 142 70% 45%;
     --success-foreground: 0 0% 98%;
@@ -86,7 +86,7 @@
 
 @layer components {
   .task-card {
-    @apply flex flex-col bg-card border border-border p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
+    @apply flex flex-col bg-card border border-border p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300;
   }
   
   .task-card.completed {
@@ -98,7 +98,7 @@
   }
   
   .priority-high {
-    @apply bg-destructive/15 text-destructive dark:bg-destructive/25;
+    @apply bg-destructive/20 text-destructive dark:bg-destructive/30;
   }
   
   .priority-medium {
@@ -134,18 +134,18 @@
 .task-list > *:nth-child(9) { animation-delay: 0.45s; }
 .task-list > *:nth-child(10) { animation-delay: 0.5s; }
 
-/* New enhanced styles */
+/* Enhanced styles with new color scheme */
 .task-card {
   @apply overflow-hidden relative;
 }
 
 .task-card::before {
   content: '';
-  @apply absolute left-0 top-0 h-full w-1 opacity-70 transition-all duration-200;
+  @apply absolute left-0 top-0 h-full w-1.5 opacity-80 transition-all duration-200;
 }
 
 .task-card:hover::before {
-  @apply opacity-100;
+  @apply opacity-100 w-2;
 }
 
 .task-card.completed::before {
@@ -171,4 +171,35 @@ button[type="submit"]:hover::after, .dialog button[type="submit"]:hover::after {
 
 .calendar {
   pointer-events: auto !important;
+}
+
+/* New enhanced styles */
+.task-card {
+  @apply transition-all duration-300 hover:translate-y-[-3px];
+  box-shadow: 0 4px 20px rgba(236, 0, 140, 0.08);
+}
+
+.task-card:hover {
+  box-shadow: 0 8px 30px rgba(236, 0, 140, 0.15);
+}
+
+.tag {
+  @apply bg-secondary/80 text-secondary-foreground/90;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondary/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/40 rounded-full transition-colors;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary/60;
 }

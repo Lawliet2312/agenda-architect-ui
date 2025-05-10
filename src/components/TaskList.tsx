@@ -13,20 +13,20 @@ interface TaskListProps {
 export function TaskList({ tasks, onUpdate, onDelete, onToggleComplete }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="rounded-full bg-secondary/50 p-4 mb-4">
-          <ClipboardX className="h-10 w-10 text-muted-foreground" />
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="rounded-full bg-secondary p-5 mb-5 animate-pulse">
+          <ClipboardX className="h-12 w-12 text-primary" />
         </div>
-        <h3 className="text-xl font-medium mb-2">No tasks found</h3>
-        <p className="text-muted-foreground">
-          Add a new task or try changing your filters.
+        <h3 className="text-2xl font-medium mb-3">No tasks found</h3>
+        <p className="text-muted-foreground max-w-md">
+          Add a new task or try changing your filters to see your tasks here.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 task-list mt-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 task-list mt-8">
       {tasks.map((task) => (
         <TaskCard
           key={task.id}
